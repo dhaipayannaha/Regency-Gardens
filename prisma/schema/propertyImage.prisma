@@ -1,0 +1,11 @@
+model PropertyImage {
+    id        String  @id @default(cuid())
+    url       String
+    alt       String?
+    isPrimary Boolean @default(false)
+
+    propertyId String
+    property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+    createdAt DateTime @default(now())
+}

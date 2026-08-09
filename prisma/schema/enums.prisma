@@ -1,18 +1,24 @@
+// next
 enum Role {
-  SUPER_ADMIN
+  USER
+  AGENT
   ADMIN
-  DOCTOR
-  PATIENT
 }
 
-enum UserStatus {
+enum ListingType {
+  SALE
+  RENT
+}
+
+enum PropertyStatus {
   ACTIVE
-  BLOCKED
-  DELETED
+  PENDING
+  SOLD
+  RENTED
+  DRAFT
 }
 
-enum Gender {
-  MALE
-  FEMALE
-  OTHER
+enum AuthProvider {
+  googleId
+  CREDENTIAL
 }

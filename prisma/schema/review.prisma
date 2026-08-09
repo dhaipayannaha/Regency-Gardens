@@ -1,0 +1,10 @@
+model Review {
+    id         String   @id @default(cuid())
+    rating     Int // 1-5
+    comment    String
+    userId     String
+    user       User     @relation(fields: [userId], references: [id])
+    propertyId String
+    property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+    createdAt  DateTime @default(now())
+}

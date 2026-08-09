@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "PropertyImage" ADD COLUMN     "alt" TEXT,
+ADD COLUMN     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;

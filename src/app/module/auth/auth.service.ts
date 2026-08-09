@@ -1,17 +1,20 @@
 import bcrypt from "bcryptjs";
 import type { JwtPayload, SignOptions } from "jsonwebtoken";
-import { Role, UserStatus } from "../../../generated/prisma/enums";
+import { AuthProvider, Role } from "../../../generated/prisma/enums";
 import config from "../../config";
 import { prisma } from "../../lib/prisma";
 import { jwtUtils } from "../../utils/jwt";
 import type {
+	IGooglePayload,
 	ILoginUserPayload,
-	IRegisterPatientPayload,
+	IRegisterUserPayload,
 	IRequestUser,
 } from "./auth.interface";
+import { googleClient } from "../../lib/googleAuth";
+import { TokenPayload } from "google-auth-library";
 
-const registerPatient = async (payload: IRegisterPatientPayload) => {
-	const { name, password } = payload;
+const registerUser = async (payload: IRegisterUserPayload) => {
+	const { name, password, phone } = payload;
 	const email = payload.email.trim().toLowerCase();
 
 	const isUserExists = await prisma.user.findUnique({
@@ -29,23 +32,18 @@ const registerPatient = async (payload: IRegisterPatientPayload) => {
 			name,
 			email,
 			password: hashedPassword,
-			role: Role.PATIENT,
-			status: UserStatus.ACTIVE,
-			emailVerified: false,
-			patient: {
-				create: { name, email },
-			},
+			phone,
+			role: Role.USER,
 		},
 		omit: { password: true },
-		include: { patient: true },
 	});
 
-	const { patient, ...user } = createdUser;
+
 	const jwtPayload = {
-		userId: user.id,
-		name: user.name,
-		email: user.email,
-		role: user.role,
+		userId: createdUser.id,
+		name: createdUser.name,
+		email: createdUser.email,
+		role: createdUser.role,
 	};
 
 	const accessToken = jwtUtils.createToken(
@@ -61,8 +59,7 @@ const registerPatient = async (payload: IRegisterPatientPayload) => {
 	);
 
 	return {
-		user,
-		patient,
+		user: createdUser,
 		accessToken,
 		refreshToken,
 	};
@@ -80,15 +77,7 @@ const loginUser = async (payload: ILoginUserPayload) => {
 		throw new Error("User not found");
 	}
 
-	if (user.status === UserStatus.BLOCKED) {
-		throw new Error("User is blocked");
-	}
-
-	if (user.isDeleted || user.status === UserStatus.DELETED) {
-		throw new Error("User is deleted");
-	}
-
-	const isPasswordMatched = await bcrypt.compare(password, user.password);
+	const isPasswordMatched = await bcrypt.compare(password, user.password as string);
 
 	if (!isPasswordMatched) {
 		throw new Error("Invalid credentials");
@@ -124,9 +113,6 @@ const getMe = async (user: IRequestUser) => {
 		where: {
 			id: user.userId,
 		},
-		include: {
-			patient: true,
-		},
 		omit: {
 			password: true,
 		},
@@ -159,8 +145,82 @@ const refreshToken = async (token: string) => {
 		where: { id: data.userId },
 	});
 
-	if (!user || user.isDeleted || user.status !== UserStatus.ACTIVE) {
-		throw new Error("User is inactive or not found");
+	if (!user) {
+		throw new Error("User not found");
+	}
+
+	const jwtPayload = {
+		userId: user.id,
+		name: user.name,
+		email: user.email,
+		role: user.role,
+	};
+
+	const accessToken = jwtUtils.createToken(
+		jwtPayload,
+		config.jwt_access_secret,
+		config.jwt_access_expires_in as SignOptions,
+	);
+
+	const refreshToken = jwtUtils.createToken(
+		jwtPayload,
+		config.jwt_refresh_secret,
+		config.jwt_refresh_expires_in as SignOptions,
+	);
+
+	return {
+		accessToken,
+		refreshToken,
+	};
+};
+
+const googleLogin = async (payload: IGooglePayload) => {
+	let googleIdTokenPayload: TokenPayload | null | undefined = null;
+
+	try {
+		const ticket = await googleClient.verifyIdToken({
+			idToken: payload.idToken,
+			audience: config.google_client_id
+		});
+
+		googleIdTokenPayload = ticket.getPayload();
+	} catch (error) {
+		console.log("google id token validation error", error);
+		throw new Error("Invalid google id token");
+	}
+
+	if (!googleIdTokenPayload) {
+		throw new Error("Invalid google id token");
+	}
+	if (!googleIdTokenPayload.email) {
+		throw new Error("Google email not found");
+	}
+	if (!googleIdTokenPayload.name) {
+		throw new Error("Google name not found");
+	}
+
+	// Look up by googleId (unique field) — findUnique only accepts one unique constraint at a time
+	let user = await prisma.user.findUnique({
+		where: { googleId: googleIdTokenPayload.sub }
+	});
+
+	// Fallback: check if the user previously registered with the same email via credentials
+	if (!user) {
+		user = await prisma.user.findUnique({
+			where: { email: googleIdTokenPayload.email }
+		});
+	}
+
+	if (!user) {
+		user = await prisma.user.create({
+			data: {
+				name: googleIdTokenPayload.name,
+				email: googleIdTokenPayload.email,
+				role: Role.USER,
+				googleId: googleIdTokenPayload.sub,
+				authProvider: AuthProvider.googleId,
+			}
+		});
 	}
 
 	const jwtPayload = {
@@ -189,8 +249,9 @@ const refreshToken = async (token: string) => {
 };
 
 export const AuthService = {
-	registerPatient,
+	registerUser,
 	loginUser,
 	getMe,
 	refreshToken,
+	googleLogin
 };

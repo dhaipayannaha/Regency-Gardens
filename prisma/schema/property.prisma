@@ -1,0 +1,36 @@
+model Property {
+    id          String         @id @default(cuid())
+    title       String
+    slug        String         @unique
+    description String
+    price       Decimal
+    listingType ListingType
+    status      PropertyStatus @default(ACTIVE)
+    bedrooms    Int
+    bathrooms   Int
+    areaSqft    Int
+    address     String
+    city        String
+    state       String
+    country     String
+    latitude    Float?
+    longitude   Float?
+    featured    Boolean        @default(false)
+
+    agentId String
+    agent   User   @relation("AgentProperties", fields: [agentId], references: [id])
+
+    categoryId String
+    category   Category @relation(fields: [categoryId], references: [id])
+
+    images    PropertyImage[]
+    reviews   Review[]
+    favorites Favorite[]
+    inquiries Inquiry[]
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@index([city, listingType, status])
+    @@index([price])
+}

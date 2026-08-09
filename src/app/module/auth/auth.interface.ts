@@ -5,10 +5,11 @@ export interface ILoginUserPayload {
 	password: string;
 }
 
-export interface IRegisterPatientPayload {
+export interface IRegisterUserPayload {
 	name: string;
 	email: string;
 	password: string;
+	phone?: string;
 }
 
 export interface IRequestUser {
@@ -16,4 +17,10 @@ export interface IRequestUser {
 	email: string;
 	name: string;
 	role: Role;
+}
+
+export interface IGooglePayload {
+	idToken: string;
+	googleId: string;
+	token: string;
 }

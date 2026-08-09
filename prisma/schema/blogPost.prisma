@@ -1,0 +1,10 @@
+model BlogPost {
+    id         String   @id @default(cuid())
+    title      String
+    slug       String   @unique
+    excerpt    String
+    content    String
+    coverImage String?
+    published  Boolean  @default(true)
+    createdAt  DateTime @default(now())
+}
