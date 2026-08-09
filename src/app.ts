@@ -13,6 +13,7 @@ import { AuthRoutes } from "./app/module/auth/auth.route";
 import { PropertyRoutes } from "./app/module/property/property.route";
 import { CategoryRoutes } from "./app/module/category/category.route";
 import { PropertyImageRoutes } from "./app/module/property-image/property-image.route";
+import { FavoriteRoutes } from "./app/module/favourite/favorite.route";
 
 const app: Application = express();
 
@@ -34,6 +35,7 @@ app.use("/api/v1/auth", AuthRoutes);
 app.use("/api/v1/property", PropertyRoutes);
 app.use("/api/v1/category", CategoryRoutes);
 app.use('/api/v1/property-image', PropertyImageRoutes);
+app.use('/api/v1/favorite', FavoriteRoutes);
 
 // Basic route
 app.get("/", async (req: Request, res: Response) => {
