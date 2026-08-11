@@ -21,3 +21,13 @@ export interface IProperty {
     agentId: string;
     categoryId: string;
 }
+export type PropertyFilters = {
+  city?: string;
+  listingType?: ListingType;
+  status?: PropertyStatus;
+  minPrice?: string;
+  maxPrice?: string;
+  bedrooms?: string;
+  bathrooms?: string;
+  searchTerm?: string; // searches title/description
+};

@@ -3,6 +3,7 @@ import httpStatus from 'http-status';
 import { PropertyService } from './property.service';
 import { catchAsync } from '../../utils/catchAsync';
 import { sendResponse } from '../../utils/sendResponse';
+import { ListingType, PropertyStatus } from '../../../generated/prisma/client';
 
 const createProperty = catchAsync(async (req: Request, res: Response) => {
     const payload = req.body;
@@ -17,13 +18,31 @@ const createProperty = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getAllProperties = catchAsync(async (req: Request, res: Response) => {
-    const result = await PropertyService.getAllProperties();
+    const filters = {
+        city: req.query.city as string,
+        listingType: req.query.listingType as ListingType,
+        status: req.query.status as PropertyStatus,
+        minPrice: req.query.minPrice as string,
+        maxPrice: req.query.maxPrice as string,
+        bedrooms: req.query.bedrooms as string,
+        bathrooms: req.query.bathrooms as string,
+        searchTerm: req.query.searchTerm as string,
+    };
+
+    const options = {
+        page: req.query.page as string,
+        limit: req.query.limit as string,
+        sortBy: req.query.sortBy as string,
+    };
+
+    const result = await PropertyService.getAllProperties(filters, options);
 
     sendResponse(res, {
         statusCode: httpStatus.OK,
         success: true,
         message: 'Properties retrieved successfully',
-        data: result,
+        meta: result.meta,
+        data: result.data,
     });
 });
 

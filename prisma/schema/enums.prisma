@@ -22,3 +22,9 @@ enum AuthProvider {
   googleId
   CREDENTIAL
 }
+
+enum InquiryStatus {
+  PENDING
+  RESPONDED
+  CLOSED
+}

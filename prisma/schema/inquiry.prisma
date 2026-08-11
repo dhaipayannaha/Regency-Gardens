@@ -1,11 +1,16 @@
 model Inquiry {
-    id         String   @id @default(cuid())
-    name       String
-    email      String
-    message    String
-    userId     String?
-    user       User?    @relation(fields: [userId], references: [id])
-    propertyId String
-    property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-    createdAt  DateTime @default(now())
+  id         String   @id @default(cuid())
+  message    String
+
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  status     InquiryStatus @default(PENDING)
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
+
