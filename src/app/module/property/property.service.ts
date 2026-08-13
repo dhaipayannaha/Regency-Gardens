@@ -8,7 +8,7 @@ import httpStatus from 'http-status';
 
 const createProperty = async (payload: IProperty) => {
     const { images, ...propertyData } = payload;
-    
+
     const data: any = {
         ...propertyData,
     };
