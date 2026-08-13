@@ -87,10 +87,30 @@ const deleteProperty = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+const getMyProperties = catchAsync(async (req: Request, res: Response) => {
+    const agentId = req.user?.userId as string; // confirm this matches your actual field (id vs userId)
+
+    const options = {
+        page: req.query.page as string,
+        limit: req.query.limit as string,
+    };
+
+    const result = await PropertyService.getMyProperties(agentId, options);
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: 'Your properties retrieved successfully',
+        meta: result.meta,
+        data: result.data,
+    });
+});
+
 export const PropertyController = {
     createProperty,
     getAllProperties,
     getSingleProperty,
     updateProperty,
     deleteProperty,
+    getMyProperties
 };

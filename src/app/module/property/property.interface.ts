@@ -20,6 +20,7 @@ export interface IProperty {
     featured?: boolean;
     agentId: string;
     categoryId: string;
+    images?: string[];
 }
 export type PropertyFilters = {
   city?: string;

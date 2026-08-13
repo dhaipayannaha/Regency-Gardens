@@ -13,6 +13,12 @@ router.get(
 	AuthController.getMe,
 );
 router.post("/refresh-token", AuthController.refreshToken);
+
+// Google OAuth redirect flow (browser-based)
+router.get("/google", AuthController.googleOAuthRedirect);
+router.get("/google/callback", AuthController.googleOAuthCallback);
+
+// Google idToken flow (for direct token-based clients)
 router.post("/google", AuthController.googleLogin);
 
 export const AuthRoutes = router;

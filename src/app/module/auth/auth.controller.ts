@@ -142,11 +142,52 @@ const googleLogin = catchAsync(async (req: Request, res: Response) => {
 	});
 });
 
+/**
+ * GET /api/v1/auth/google
+ * Redirects the browser to Google's OAuth consent screen.
+ * Accepts an optional ?callbackUrl= query param so the frontend can specify
+ * where Google should send the user after authentication.
+ */
+const googleOAuthRedirect = catchAsync(async (req: Request, res: Response) => {
+	const callbackUrl =
+		(req.query.callbackUrl as string) ??
+		"http://localhost:3000/api/auth/google/callback";
+
+	const googleAuthUrl = AuthService.googleOAuthRedirect(callbackUrl);
+	res.redirect(googleAuthUrl);
+});
+
+/**
+ * GET /api/v1/auth/google/callback
+ * Google redirects here after the user consents.
+ * Exchanges the ?code= for tokens, issues our JWTs, then redirects to
+ * the frontend callback URL with tokens in the query string.
+ */
+const googleOAuthCallback = catchAsync(async (req: Request, res: Response) => {
+	const code  = req.query.code  as string | undefined;
+	const state = req.query.state as string | undefined;
+	const error = req.query.error as string | undefined;
+
+	if (error || !code) {
+		const frontendLogin = "http://localhost:3000/login?error=google_auth_failed";
+		return res.redirect(frontendLogin);
+	}
+
+	try {
+		const redirectUrl = await AuthService.googleOAuthCallback(code, state);
+		return res.redirect(redirectUrl);
+	} catch (err) {
+		console.error("[googleOAuthCallback] error:", err);
+		return res.redirect("http://localhost:3000/login?error=google_auth_failed");
+	}
+});
 
 export const AuthController = {
 	registerUser,
 	loginUser,
 	getMe,
 	refreshToken,
-	googleLogin
+	googleLogin,
+	googleOAuthRedirect,
+	googleOAuthCallback,
 };

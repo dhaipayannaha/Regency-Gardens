@@ -16,6 +16,7 @@ import { FavoriteRoutes } from "./app/module/favourite/favorite.route";
 import { InquiryRoutes } from "./app/module/inquiry/inquiry.route";
 import { ReviewRoutes } from "./app/module/review/review.route";
 import globalErrorHandler from "./app/middleware/globalErrorHandler";
+import { userRoutes } from "./app/module/users/user.route";
 
 const app: Application = express();
 
@@ -40,6 +41,7 @@ app.use('/api/v1/property-image', PropertyImageRoutes);
 app.use('/api/v1/favorite', FavoriteRoutes);
 app.use('/api/v1/inquiry', InquiryRoutes);
 app.use('/api/v1/review', ReviewRoutes);
+app.use('/api/v1/user', userRoutes);
 
 // Basic route
 app.get("/", async (req: Request, res: Response) => {

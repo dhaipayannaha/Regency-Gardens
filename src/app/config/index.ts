@@ -15,4 +15,6 @@ export default {
 	jwt_access_expires_in: process.env.JWT_ACCESS_EXPIRES_IN!,
 	jwt_refresh_expires_in: process.env.JWT_REFRESH_EXPIRES_IN!,
 	google_client_id: process.env.GOOGLE_CLIENT_ID!,
+	google_client_secret: process.env.GOOGLE_CLIENT_SECRET!,
+	google_redirect_uri: process.env.GOOGLE_REDIRECT_URI ?? "http://localhost:5000/api/v1/auth/google/callback",
 };

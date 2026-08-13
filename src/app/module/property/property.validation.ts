@@ -18,6 +18,7 @@ const createPropertyValidation = z.object({
         longitude: z.number().optional(),
         agentId: z.string(),
         categoryId: z.string(),
+        images: z.array(z.string()).optional(),
     }),
 });
 

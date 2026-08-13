@@ -7,8 +7,26 @@ import { IProperty, PropertyFilters } from './property.interface';
 import httpStatus from 'http-status';
 
 const createProperty = async (payload: IProperty) => {
+    const { images, ...propertyData } = payload;
+    
+    const data: any = {
+        ...propertyData,
+    };
+
+    if (images && images.length > 0) {
+        data.images = {
+            create: images.map((url, index) => ({
+                url,
+                isPrimary: index === 0,
+            })),
+        };
+    }
+
     const result = await prisma.property.create({
-        data: payload,
+        data,
+        include: {
+            images: true,
+        },
     });
     return result;
 };
@@ -108,9 +126,14 @@ const getAllProperties = async (
     };
 };
 
-const getSingleProperty = async (id: string) => {
-    const property = await prisma.property.findUnique({
-        where: { id },
+const getSingleProperty = async (idOrSlug: string) => {
+    const property = await prisma.property.findFirst({
+        where: {
+            OR: [
+                { id: idOrSlug },
+                { slug: idOrSlug },
+            ],
+        },
         include: {
             agent: { select: { id: true, name: true, email: true } },
             category: true,
@@ -129,7 +152,7 @@ const getSingleProperty = async (id: string) => {
     }
 
     const aggregate = await prisma.review.aggregate({
-        where: { propertyId: id },
+        where: { propertyId: property.id },
         _avg: { rating: true },
         _count: { rating: true },
     });
@@ -202,6 +225,35 @@ const deleteProperty = async (id: string, userId: string) => {
     });
     return result;
 };
+const getMyProperties = async (
+    agentId: string,
+    options: { page?: string; limit?: string }
+) => {
+    const page = Number(options.page) || 1;
+    const limit = Number(options.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const whereConditions = { agentId };
+
+    const result = await prisma.property.findMany({
+        where: whereConditions,
+        include: {
+            category: true,
+            images: true,
+            _count: { select: { reviews: true, inquiries: true, favorites: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+    });
+
+    const total = await prisma.property.count({ where: whereConditions });
+
+    return {
+        meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
+        data: result,
+    };
+};
 
 export const PropertyService = {
     createProperty,
@@ -209,4 +261,5 @@ export const PropertyService = {
     getSingleProperty,
     updateProperty,
     deleteProperty,
+    getMyProperties
 };

@@ -9,6 +9,7 @@ const router = Router();
 
 router.post('/create-property', auth(Role.AGENT), PropertyController.createProperty);
 router.get('/', PropertyController.getAllProperties);
+router.get('/my-properties', auth(Role.AGENT), PropertyController.getMyProperties);
 router.get('/:id', PropertyController.getSingleProperty);
 router.patch('/:id', auth(Role.AGENT), PropertyController.updateProperty);
 router.delete('/:id', auth(Role.AGENT), PropertyController.deleteProperty);
