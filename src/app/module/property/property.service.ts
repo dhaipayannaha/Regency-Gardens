@@ -194,7 +194,7 @@ const updateProperty = async (
 
     const result = await prisma.property.update({
         where: { id },
-        data: payload,
+        data: payload as any,
     });
     return result;
 };
